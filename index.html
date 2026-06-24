@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plataforma de tesis · asistente Tesia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16202C;--muted:#5A6675;--faint:#8893A0;
+    --line:#E5EAEF;--page:#EFF3F6;--card:#FFFFFF;
+    --rail:#13202B;--rail-mut:#93A4B1;--rail-act:#6FD8CF;
+    --teal:#16808A;--teal-h:#10646D;--teal-soft:#E2F1F1;
+    --ok:#2E7D52;--ok-bg:#E7F3EC;--warn:#9A6312;--warn-bg:#F7EED8;
+    --bad:#B23330;--bad-bg:#FAE7E6;--info:#2A5DA8;--info-bg:#E7EFFA;
+    --gold:#B9892E;--gold-bg:#F8F0DC;
+    --r:12px;--r-sm:9px;--drawer:374px;
+    --shadow:0 1px 2px rgba(20,30,45,.05),0 1px 1px rgba(20,30,45,.03);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:"Inter",system-ui,sans-serif;background:var(--page);color:var(--ink);line-height:1.5;
+    -webkit-font-smoothing:antialiased;display:flex;overflow:hidden;transition:margin-right .3s cubic-bezier(.4,0,.2,1)}
+  h1,h2,h3{font-family:"Sora",sans-serif}
+  button{font-family:inherit}
+  ::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:#CBD4DC;border-radius:9px}
+
+  .rail{width:238px;background:var(--rail);color:var(--rail-mut);flex-shrink:0;display:flex;flex-direction:column;justify-content:space-between;padding:20px 14px;height:100vh}
+  .brand{display:flex;align-items:center;gap:11px;padding:6px 8px 22px}
+  .brand .mk{width:34px;height:34px;border-radius:9px;background:linear-gradient(160deg,var(--teal),#0E5660);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+  .brand .mk svg{width:19px;height:19px}
+  .brand b{font-family:"Sora";font-weight:600;font-size:14.5px;color:#fff;letter-spacing:-.01em;line-height:1.15;display:block}
+  .brand small{font-size:11px;color:var(--rail-mut)}
+  .nav-sec{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5F7280;padding:0 10px;margin:8px 0 6px}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:10px 11px;border-radius:9px;color:var(--rail-mut);font-size:13.5px;cursor:pointer;margin-bottom:2px;transition:background .18s,color .18s;border:none;background:none;width:100%;text-align:left}
+  .nav-item:hover{background:rgba(255,255,255,.05);color:#E8EEF2}
+  .nav-item.on{background:rgba(111,216,207,.13);color:var(--rail-act);font-weight:500}
+  .nav-item svg{width:16px;height:16px;flex:none;opacity:.9}
+  .nav-num{width:19px;height:19px;border-radius:6px;background:rgba(255,255,255,.07);font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:600;flex:none}
+  .nav-item.on .nav-num{background:var(--teal);color:#fff}
+  .nav-done .nav-num{background:var(--ok)!important;color:#fff}
+  .rail-foot{font-size:11px;color:#546573;padding:8px 10px;line-height:1.4}
+
+  .main{flex:1;height:100vh;overflow-y:auto;display:flex;flex-direction:column}
+  .hdr{background:var(--card);border-bottom:1px solid var(--line);padding:18px 30px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:relative;z-index:1}
+  .hdr .eyebrow{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+  .hdr h1{font-size:19px;font-weight:600;letter-spacing:-.015em;margin-top:2px}
+  .hdr h1 .st{font-weight:500}
+  .btn-ghost{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);padding:8px 14px;border-radius:9px;font-size:12.5px;font-weight:500;color:var(--muted);cursor:pointer;transition:background .15s,border-color .15s}
+  .btn-ghost:hover{background:#F4F7F9;border-color:#CFD8DF;color:var(--ink)}
+  .btn-ghost svg{width:15px;height:15px}
+
+  /* tracker */
+  .tracker{background:var(--card);border-bottom:1px solid var(--line);padding:13px 30px;display:flex;gap:4px;overflow-x:auto;position:relative;z-index:1}
+  .tk{display:flex;align-items:center;gap:9px;flex:1;min-width:120px}
+  .tk .kd{width:22px;height:22px;border-radius:50%;background:#E6EBEF;color:var(--faint);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex:none}
+  .tk .kd svg{width:12px;height:12px}
+  .tk .kl{font-size:12px;color:var(--muted);white-space:nowrap}
+  .tk.active .kd{background:var(--teal);color:#fff;box-shadow:0 0 0 4px var(--teal-soft)}
+  .tk.active .kl{color:var(--ink);font-weight:600}
+  .tk.done .kd{background:var(--ok);color:#fff}
+  .tk .bar{flex:1;height:2px;background:var(--line);min-width:14px}
+  .tk:hover .kl{color:var(--teal);text-decoration:underline}
+  .tk.done .bar{background:var(--ok)}
+
+  .tabs{background:var(--card);border-bottom:1px solid var(--line);padding:0 30px;display:flex;gap:6px;overflow-x:auto;position:relative;z-index:1}
+  .tab{display:flex;align-items:center;gap:8px;padding:13px 6px;border:none;background:none;cursor:pointer;font-size:13px;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+  .tab .tn{width:19px;height:19px;border-radius:50%;background:#E6EBEF;color:var(--faint);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+  .tab .tn svg{width:11px;height:11px}
+  .tab.on{color:var(--teal);font-weight:600;border-bottom-color:var(--teal)}
+  .tab.on .tn{background:var(--teal);color:#fff}
+  .tab.done .tn{background:var(--ok);color:#fff}
+
+  .wrap{padding:24px 30px 60px;max-width:880px;width:100%;margin:0 auto;animation:fade .3s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:18px;box-shadow:var(--shadow)}
+  .card h2{font-size:15.5px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .card h2 svg{width:17px;height:17px;color:var(--teal)}
+  .card .sub{font-size:13px;color:var(--muted);margin-bottom:16px;max-width:62ch}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .fg{margin-bottom:14px}
+  label{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px}
+  .auto{font-size:9.5px;font-weight:600;background:#EEF2F5;color:var(--faint);padding:1px 7px;border-radius:99px}
+  .ex{font-size:9.5px;font-weight:600;background:var(--teal-soft);color:var(--teal-h);padding:1px 7px;border-radius:99px}
+  input[type=text],textarea{width:100%;border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;font-family:inherit;font-size:13.5px;background:#fff;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+  input[readonly],textarea[readonly]{background:#F7F9FB;color:var(--muted)}
+  textarea{resize:vertical;min-height:60px;line-height:1.5}
+  input:focus,textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft)}
+  .filled{border-color:#BBD9DA!important;background:#FAFEFE!important;color:var(--ink)!important}
+
+  .drop{border:1.5px dashed #BFCCD5;border-radius:var(--r-sm);padding:26px;text-align:center;background:#FAFCFD;cursor:pointer;transition:border-color .18s,background .18s}
+  .drop:hover{border-color:var(--teal);background:#F2FAFA}
+  .drop svg{width:26px;height:26px;color:var(--faint);margin-bottom:8px}
+  .drop .dt{font-size:13.5px;font-weight:500;color:var(--teal)}
+  .drop .dd{font-size:12px;color:var(--muted);margin-top:3px}
+  .drop.ok{border-style:solid;border-color:#BBD9DA;background:#F2FAFA}
+  .drop.ok svg{color:var(--ok)}.drop.ok .dt{color:var(--ok)}
+
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:10.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--faint);padding:9px 10px;border-bottom:1px solid var(--line)}
+  td{padding:12px 10px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  .dn{display:flex;align-items:center;gap:9px}
+  .dn svg{width:16px;height:16px;color:var(--faint);flex:none}
+  .req{font-size:9.5px;font-weight:600;background:var(--warn-bg);color:var(--warn);padding:1px 6px;border-radius:4px;margin-left:6px}
+  .pill{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;white-space:nowrap}
+  .p-ok{background:var(--ok-bg);color:var(--ok)}.p-info{background:var(--info-bg);color:var(--info)}
+  .p-warn{background:var(--warn-bg);color:var(--warn)}.p-bad{background:var(--bad-bg);color:var(--bad)}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--teal);color:#fff;border:1px solid var(--teal);padding:10px 17px;border-radius:9px;font-size:13.5px;font-weight:500;cursor:pointer;transition:background .15s,transform .1s}
+  .btn:hover{background:var(--teal-h);border-color:var(--teal-h)}.btn:active{transform:scale(.98)}
+  .btn.sm{padding:6px 12px;font-size:12px}
+  .btn.soft{background:#fff;color:var(--muted);border-color:var(--line)}.btn.soft:hover{background:#F4F7F9;color:var(--ink)}
+  .btn.warn{background:var(--warn);border-color:var(--warn)}.btn.info{background:var(--info);border-color:var(--info)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+
+  .note{display:flex;gap:10px;align-items:flex-start;border-radius:var(--r-sm);padding:12px 14px;font-size:13px;margin:6px 0}
+  .note svg{width:17px;height:17px;flex:none;margin-top:1px}
+  .note.info{background:var(--info-bg);color:#22416d}.note.info svg{color:var(--info)}
+  .note.ok{background:var(--ok-bg);color:#1f5a3b}.note.ok svg{color:var(--ok)}
+  .note.warn{background:var(--warn-bg);color:#7a4f12}.note.warn svg{color:var(--warn)}
+  .note.bad{background:var(--bad-bg);color:#7a2421}.note.bad svg{color:var(--bad)}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px}
+  .stat{background:#F7F9FB;border:1px solid var(--line);border-radius:var(--r-sm);padding:13px}
+  .stat .n{font-size:25px;font-weight:600;font-family:"Sora";line-height:1}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:5px}
+
+  /* journals */
+  .jcard{border:1px solid var(--line);border-radius:var(--r-sm);padding:13px 15px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:border-color .15s,background .15s}
+  .jcard.sel{border-color:var(--teal);background:var(--teal-soft)}
+  .jcard .jn{font-size:13.5px;font-weight:600}
+  .jcard .jm{font-size:12px;color:var(--muted);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .qbadge{font-size:10px;font-weight:600;padding:1px 7px;border-radius:4px;background:var(--gold-bg);color:var(--gold)}
+  .scbadge{font-size:10px;font-weight:600;padding:1px 7px;border-radius:4px;background:#EDEAF7;color:#5B4B9E}
+
+  /* practice */
+  .qitem{border:1px solid var(--line);border-radius:var(--r-sm);padding:14px 15px;margin-bottom:12px}
+  .qitem .qh{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+  .qitem .qq{font-size:13.5px;font-weight:500;line-height:1.45}
+  .tips{margin-top:11px;padding-top:11px;border-top:1px dashed var(--line)}
+  .tips .th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--teal);margin-bottom:6px}
+  .tips ul{padding-left:17px;font-size:12.5px;color:var(--muted);line-height:1.6}
+  .meter{height:8px;background:#E6EBEF;border-radius:99px;overflow:hidden;margin:6px 0 4px}
+  .meter span{display:block;height:100%;background:var(--info);transition:width .4s ease}
+
+  /* old/tedious */
+  .oldbox{border:1px dashed #D8B27A;background:#FCF7EE;border-radius:var(--r-sm);padding:15px;margin-top:14px}
+  .oldbox .ol{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--gold);margin-bottom:8px}
+  .oldbox p{font-size:11.5px;color:#7a6233;line-height:1.55;margin-bottom:10px}
+  .oldbox select{width:100%;padding:9px 11px;border:1px solid #E0CFA8;border-radius:7px;font-size:12px;color:#6b5a37;background:#fff}
+  .oldbox .cap{font-size:11px;color:var(--gold);margin-top:8px;font-style:italic}
+
+  .disc{text-align:center;font-size:11px;color:var(--faint);margin-top:24px;padding-bottom:8px}
+
+  .fab{position:fixed;right:22px;bottom:22px;height:50px;padding:0 20px 0 13px;border-radius:99px;background:var(--rail);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 6px 20px rgba(19,32,43,.35);font-family:"Sora";font-weight:600;font-size:13.5px;z-index:60;transition:transform .15s}
+  .fab:hover{transform:translateY(-2px)}
+  .fab .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(160deg,var(--teal),#0E5660);display:flex;align-items:center;justify-content:center;flex:none}
+  .fab .av svg{width:17px;height:17px;color:#fff}
+  .fab .ping{position:absolute;top:-2px;right:-2px;width:13px;height:13px;border-radius:50%;background:var(--bad);border:2px solid var(--rail);display:none}
+  .fab.alert .ping{display:block}
+
+  .drawer{position:fixed;top:0;right:0;width:var(--drawer);max-width:92vw;height:100vh;background:var(--card);border-left:1px solid var(--line);box-shadow:-10px 0 34px rgba(20,30,45,.12);z-index:70;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+  body.aopen .drawer{transform:translateX(0)}
+  body.aopen{margin-right:var(--drawer)}
+  .dhead{display:flex;align-items:center;gap:11px;padding:15px 17px;border-bottom:1px solid var(--line)}
+  .dhead .av{width:38px;height:38px;border-radius:11px;background:linear-gradient(160deg,var(--teal),#0E5660);display:flex;align-items:center;justify-content:center;flex:none}
+  .dhead .av svg{width:20px;height:20px;color:#fff}
+  .dhead .nm{font-family:"Sora";font-weight:600;font-size:15px;letter-spacing:-.01em}
+  .dhead .stt{font-size:11.5px;color:var(--ok);display:flex;align-items:center;gap:5px}
+  .dhead .stt::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ok)}
+  .dhead .x{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--faint);width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+  .dhead .x:hover{background:#F2F5F8}.dhead .x svg{width:18px;height:18px}
+  .dbody{flex:1;overflow-y:auto;padding:16px;background:#FAFBFC}
+  .ident{background:var(--teal-soft);border:1px solid #CFE7E6;border-radius:var(--r-sm);padding:11px 13px;font-size:12.5px;color:var(--teal-h);line-height:1.45;margin-bottom:15px}
+  .msg{background:#fff;border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:9px;padding:12px 13px;font-size:13.5px;line-height:1.5;margin-bottom:13px;box-shadow:var(--shadow)}
+  .msg b{font-weight:600}
+  .acard{background:#fff;border:1px solid var(--line);border-radius:var(--r-sm);padding:13px;margin-bottom:13px;box-shadow:var(--shadow)}
+  .acard .ah{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--teal);margin-bottom:10px}
+  .opt{display:block;width:100%;text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:9px;padding:11px 12px;cursor:pointer;margin-bottom:8px;transition:border-color .15s,background .15s}
+  .opt:last-child{margin-bottom:0}.opt:hover{border-color:#BFD4D6;background:#FAFCFC}.opt.sel{border-color:var(--teal);background:var(--teal-soft)}
+  .opt .ot{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .opt .ot svg{width:16px;height:16px;color:var(--teal)}
+  .opt .od{font-size:11.5px;color:var(--muted);margin-top:2px;padding-left:24px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-size:12px;background:#F1F5F7;border:1px solid var(--line);border-radius:99px;padding:4px 11px;cursor:pointer}
+  .chip:hover{background:var(--teal-soft);border-color:#BFD4D6}.chip.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+
+  .ov{position:fixed;inset:0;background:rgba(15,23,34,.55);display:flex;align-items:center;justify-content:center;z-index:90;opacity:0;visibility:hidden;transition:opacity .2s;padding:20px}
+  .ov.open{opacity:1;visibility:visible}
+  .modal{background:#fff;border-radius:14px;max-width:600px;width:100%;padding:26px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 50px rgba(15,23,34,.3)}
+  .modal h2{font-size:18px;font-weight:600;margin-bottom:5px}
+  .modal .ms{font-size:13px;color:var(--muted);margin-bottom:18px}
+  .hero{display:flex;align-items:center;justify-content:center;gap:18px;background:#F6F9FB;border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:20px}
+  .hero .bn{text-align:center}
+  .hero .bn .v{font-family:"Sora";font-size:30px;font-weight:700;line-height:1}
+  .hero .bn .c{font-size:11px;color:var(--muted);margin-top:4px;max-width:120px}
+  .hero .arr{color:var(--teal)}
+  .impgrp{margin-bottom:16px}
+  .impgrp .gt{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--teal);margin-bottom:8px}
+  .imp{display:flex;gap:9px;align-items:flex-start;font-size:13px;margin-bottom:7px;color:var(--ink)}
+  .imp svg{width:16px;height:16px;color:var(--ok);flex:none;margin-top:2px}
+  .backdrop{display:none}
+
+  @media (max-width:900px){
+    body{overflow:auto}.rail{display:none}body.aopen{margin-right:0}.grid2{grid-template-columns:1fr}
+    .hdr,.tabs,.tracker{position:static}
+    body.aopen .backdrop{display:block;position:fixed;inset:0;background:rgba(15,23,34,.4);z-index:65}
+  }
+</style>
+</head>
+<body>
+
+<aside class="rail">
+  <div>
+    <div class="brand">
+      <div class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/><path d="M22 10v5"/></svg></div>
+      <div><b>Gestión de tesis</b><small>Plataforma académica</small></div>
+    </div>
+    <div class="nav-sec">Trámite</div>
+    <button class="nav-item" onclick="alert('Inicio es informativo. Usa los módulos del trámite.')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Inicio</button>
+    <button class="nav-item on" id="m-proyecto" onclick="switchFlow('proyecto')"><span class="nav-num">1</span>Proyecto de tesis</button>
+    <button class="nav-item" id="m-informe" onclick="switchFlow('informe')"><span class="nav-num">2</span>Informe final</button>
+    <button class="nav-item" id="m-sustentacion" onclick="switchFlow('sustentacion')"><span class="nav-num">3</span>Sustentación</button>
+  </div>
+  <div class="rail-foot">Prototipo de innovación<br>Curso de Design Thinking</div>
+</aside>
+
+<main class="main" id="main"></main>
+
+<button class="fab" id="fab" onclick="toggleAssistant()">
+  <span class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg></span>
+  <span id="fabtxt">Tesia</span><span class="ping"></span>
+</button>
+
+<div class="backdrop" onclick="toggleAssistant(false)"></div>
+
+<aside class="drawer" id="drawer" aria-label="Asistente Tesia">
+  <div class="dhead">
+    <div class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg></div>
+    <div><div class="nm">Tesia</div><div class="stt" id="t-status">En línea · Proyecto</div></div>
+    <button class="x" onclick="toggleAssistant(false)" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div class="dbody">
+    <div class="ident"><b>Tu asistente de tesis.</b> Trabajas en la plataforma; yo te guío en cada pantalla, valido tus datos y te aviso lo que falta. Ciérrame cuando quieras.</div>
+    <div id="abody"></div>
+  </div>
+</aside>
+
+<div class="ov" id="modal"><div class="modal" id="modal-content"></div></div>
+
+<script>
+const I={
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  file:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',
+  up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>',
+  info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>',
+  warn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>',
+  book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg>',
+  mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg>',
+  route:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a4 4 0 0 0 0-8H9a4 4 0 0 1 0-8h7"/></svg>',
+  people:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M16 6a3 3 0 0 1 0 6"/></svg>',
+  paw:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="9" r="1.6"/><circle cx="12" cy="6.5" r="1.6"/><circle cx="17" cy="9" r="1.6"/><path d="M8 16c0-2.2 1.8-4 4-4s4 1.8 4 4c0 1.7-1.5 2.5-4 2.5S8 17.7 8 16z"/></svg>',
+  data:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/></svg>',
+  vial:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6M10 2v14a3 3 0 0 0 6 0V2"/><path d="M10 9h6"/></svg>'
+};
+
+const TYPES={
+  personas:{label:"Con personas",icon:I.people,route:"cieic",desc:"Encuestas, entrevistas, estudios clínicos"},
+  animales:{label:"Con animales",icon:I.paw,route:"cieic",desc:"Estudios que involucran animales"},
+  datos:{label:"Datos públicos o secundarios",icon:I.data,route:"exo",desc:"Bases abiertas, bibliométricos, in vitro, revisiones"},
+  muestras:{label:"Muestras biológicas",icon:I.vial,route:"cieic",desc:"Material biológico de origen humano"}
+};
+const KW=["aprendizaje digital","educación superior","experiencia de usuario","innovación","procesos académicos"];
+const LINES=[
+  {linea:"Innovación educativa y tecnología",sub:"Tecnologías para el aprendizaje",fit:"94%"},
+  {linea:"Gestión y calidad educativa",sub:"Procesos académicos y mejora continua",fit:"81%"},
+  {linea:"Transformación digital",sub:"Optimización de procesos institucionales",fit:"76%"}
+];
+const STUDY_TYPES=[
+  "Análisis de bases de datos secundarias de acceso abierto y/o público",
+  "Estudios bibliométricos",
+  "Estudios de evaluación química de los alimentos",
+  "Investigación in vitro con microorganismos en plantas, bacterias, virus o protozoarios",
+  "Revisiones sistemáticas y síntesis de evidencia (incluye scoping y umbrella reviews)",
+  "Estudios no realizados con personas, animales ni muestras biológicas humanas"
+];
+const JOURNALS=[
+  {name:"Journal of Digital Learning",q:"Q1",area:"Tecnología educativa",fit:"Alta afinidad con tu tema"},
+  {name:"Revista de Innovación Educativa",q:"Q2",area:"Innovación y aprendizaje",fit:"Buena afinidad"},
+  {name:"Educación Superior y Sociedad",q:"Q3",area:"Educación superior",fit:"Afinidad media"}
+];
+const QUESTIONS=[
+  {q:"¿Cómo controlaste las variables externas que podrían explicar los resultados además de tu intervención?",
+   tips:["Describe tu diseño y tu grupo de comparación","Nombra qué variables mediste y cómo","Reconoce las limitaciones con honestidad"]},
+  {q:"¿Cuál es el aporte metodológico que diferencia tu tesis de estudios previos del área?",
+   tips:["Señala qué hiciste distinto al estado del arte","Conéctalo con tu objetivo general","Apóyate en 1-2 referencias clave"]},
+  {q:"¿Por qué tu muestra permite generalizar los resultados?",
+   tips:["Explica el muestreo y el tamaño","Define la población objetivo","Acota hasta dónde generalizas"]}
+];
+
+const S={
+  flow:"proyecto",tab:1,aopen:false,
+  proj:false,fields:false,kw:[],lineIdx:0,
+  advisor:false,type:null,studyType:null,cieic:{},ethicsOld:false,
+  journalSuggested:false,journalIdx:null,
+  informe:{scanned:false,refs:false,tables:false},
+  questionsShown:false,practiced:[],
+  sent:false
+};
+const FLOWLABEL={proyecto:"Proyecto",informe:"Informe final",sustentacion:"Sustentación"};
+
+/* nav */
+function switchFlow(f){S.flow=f;S.tab=1;['proyecto','informe','sustentacion'].forEach(x=>document.getElementById('m-'+x).classList.toggle('on',x===f));document.getElementById('t-status').textContent="En línea · "+FLOWLABEL[f];render();}
+function switchTab(n){S.tab=n;render();}
+function toggleAssistant(force){S.aopen=(typeof force==='boolean')?force:!S.aopen;document.body.classList.toggle('aopen',S.aopen);document.getElementById('fabtxt').textContent=S.aopen?'Cerrar':'Tesia';if(S.aopen)document.getElementById('fab').classList.remove('alert');renderAssistant();}
+function pulse(){if(!S.aopen)document.getElementById('fab').classList.add('alert');}
+function openModal(){document.getElementById('modal-content').innerHTML=modalHTML();document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+/* actions */
+function uploadProject(){S.proj=true;pulse();toggleAssistant(true);render();}
+function applyExtract(){S.fields=true;S.kw=[...KW.slice(0,3)];render();}
+function setLine(i){S.lineIdx=i;render();}
+function toggleKw(k){const i=S.kw.indexOf(k);if(i>=0)S.kw.splice(i,1);else S.kw.push(k);render();}
+function remindAdvisor(){S.advisor=true;render();}
+function suggestJournals(){S.journalSuggested=true;pulse();toggleAssistant(true);render();}
+function pickJournal(i){S.journalIdx=i;render();}
+function setType(t){S.type=t;if(TYPES[t].route==='cieic'){S.studyType=null;S.cieic={proyecto:"ok",protocolo:"info"};if(t==='personas'){S.cieic.consent="warn";S.cieic.asent="warn";}if(t==='animales'){S.cieic.bienestar="warn";}if(t==='muestras'){S.cieic.consent="warn";}}else{S.cieic={};S.studyType=0;}render();}
+function setStudy(i){S.studyType=i;render();}
+function toggleOld(){S.ethicsOld=!S.ethicsOld;render();}
+function uploadCieic(id){S.cieic[id]="ok";render();}
+function scanInforme(){S.informe.scanned=true;pulse();toggleAssistant(true);render();}
+function fixInforme(k){S.informe[k]=true;render();}
+function showQuestions(){S.questionsShown=true;toggleAssistant(true);render();}
+function practiceQ(i){if(!S.practiced.includes(i))S.practiced.push(i);render();}
+
+function pendingProyecto(){let p=0;if(!S.proj)p++;if(!S.advisor)p++;if(S.journalIdx==null)p++;if(!S.type)p++;Object.values(S.cieic).forEach(v=>{if(v==='warn')p++;});return p;}
+
+/* tracker */
+function trackerHTML(){
+  const stages=[
+    {k:"Registro",done:S.fields},
+    {k:"Ética",done:!!S.type},
+    {k:"Documentación",done:S.advisor&&S.journalIdx!=null},
+    {k:"Informe final",done:S.informe.refs&&S.informe.tables},
+    {k:"Sustentación",done:S.practiced.length>=QUESTIONS.length}
+  ];
+  let active={proyecto:(S.tab===1?0:S.tab===2?2:S.tab>=3&&S.tab<=4?1:2),informe:3,sustentacion:4}[S.flow];
+  return `<div class="tracker">`+stages.map((s,i)=>{
+    const cls=s.done?'done':(i===active?'active':'');
+    const ic=s.done?I.check:(i+1);
+    return `<div class="tk ${cls}" style="cursor:pointer" title="Ir a ${s.k}" onclick="goStage(${i})"><span class="kd">${ic}</span><span class="kl">${s.k}</span>${i<stages.length-1?'<span class="bar"></span>':''}</div>`;
+  }).join('')+`</div>`;
+}
+function goStage(i){
+  if(i===0){S.flow='proyecto';S.tab=1;}
+  else if(i===1){S.flow='proyecto';S.tab=3;}
+  else if(i===2){S.flow='proyecto';S.tab=2;}
+  else if(i===3){S.flow='informe';}
+  else {S.flow='sustentacion';}
+  ['proyecto','informe','sustentacion'].forEach(x=>document.getElementById('m-'+x).classList.toggle('on',x===S.flow));
+  document.getElementById('t-status').textContent="En línea · "+FLOWLABEL[S.flow];
+  render();
+}
+
+/* header + tabs */
+function headerHTML(){
+  const map={proyecto:["Etapa inicial","Proyecto de tesis","Registro","var(--teal)"],informe:["Etapa intermedia","Informe final","Revisión de formato","var(--warn)"],sustentacion:["Etapa final","Acto de sustentación","Preparación de defensa","var(--info)"]}[S.flow];
+  return `<div class="hdr"><div><div class="eyebrow">${map[0]}</div><h1>${map[1]} · <span class="st" style="color:${map[3]}">${map[2]}</span></h1></div>
+    <button class="btn-ghost" onclick="openModal()">${I.info}Matriz de innovación</button></div>`;
+}
+function tabsHTML(){
+  if(S.flow!=='proyecto')return '';
+  const T=["Proyecto","Documentación","Clasificación ética","Requisitos CIEIC","Validación"];
+  return `<div class="tabs">`+T.map((t,i)=>{const n=i+1,on=S.tab===n,done=S.tab>n;return `<button class="tab ${on?'on':''} ${done?'done':''}" onclick="switchTab(${n})"><span class="tn">${done?I.check:n}</span>${t}</button>`;}).join('')+`</div>`;
+}
+
+function render(){
+  let body=S.flow==='proyecto'?proyectoView():S.flow==='informe'?informeView():sustentacionView();
+  document.getElementById('main').innerHTML=headerHTML()+trackerHTML()+tabsHTML()+`<div class="wrap">${body}<div class="disc">Prototipo de demostración · datos de ejemplo, sin información real · curso de Design Thinking</div></div>`;
+  ['proyecto','informe','sustentacion'].forEach(x=>document.getElementById('m-'+x).classList.remove('nav-done'));
+  if(S.fields)document.getElementById('m-proyecto').classList.add('nav-done');
+  renderAssistant();
+}
+
+/* ---------- PROYECTO ---------- */
+function proyectoView(){
+  if(S.tab===1) return projTab1();
+  if(S.tab===2) return projTab2();
+  if(S.tab===3) return projTab3();
+  if(S.tab===4) return projTab4();
+  return projTab5();
+}
+function projTab1(){
+  const f=S.fields;
+  return `
+  <div class="card"><h2>${I.file}Documento de proyecto</h2>
+    <div class="sub">Sube tu borrador y Tesia extrae de ahí el título, los objetivos, las palabras clave y los ODS. No los escribes a mano.</div>
+    <div class="drop ${S.proj?'ok':''}" onclick="${S.proj?'':'uploadProject()'}">${I.up}
+      <div class="dt">${S.proj?'Proyecto_borrador.pdf · cargado':'Haz clic para cargar tu documento (.pdf)'}</div>
+      <div class="dd">${S.proj?'Tesia ya leyó tu documento':'Tesia leerá tu información desde aquí'}</div></div></div>
+  <div class="card"><h2>Información del proyecto</h2>
+    <div class="sub">Tus datos personales vienen del sistema. El resto lo completa Tesia desde tu documento; solo confirma y ajusta.</div>
+    <div class="grid2">
+      <div class="fg"><label><span class="auto">auto</span> Nombre del estudiante</label><input type="text" readonly value="Cargado del sistema"></div>
+      <div class="fg"><label><span class="auto">auto</span> Programa académico</label><input type="text" readonly value="Cargado del sistema"></div>
+    </div>
+    <div class="fg"><label>Título ${f?'<span class="ex">del documento</span>':''}</label>
+      <input type="text" class="${f?'filled':''}" ${f?'':'readonly placeholder="Se completa al cargar tu documento"'} value="${f?'Estrategias digitales y su efecto en el aprendizaje universitario':''}"></div>
+    <div class="grid2">
+      <div class="fg"><label>Línea de investigación ${f?'<span class="ex">sugerida</span>':''}</label>
+        <input type="text" class="${f?'filled':''}" readonly value="${f?LINES[S.lineIdx].linea:''}" ${f?'':'placeholder="Tesia la sugiere desde tu tema"'}></div>
+      <div class="fg"><label>Sublínea ${f?'<span class="ex">sugerida</span>':''}</label>
+        <input type="text" class="${f?'filled':''}" readonly value="${f?LINES[S.lineIdx].sub:''}" ${f?'':'placeholder="Tesia la sugiere desde tu tema"'}></div>
+    </div>
+    <div class="fg"><label>ODS vinculados ${f?'<span class="ex">sugeridos</span>':''}</label>
+      <input type="text" class="${f?'filled':''}" readonly value="${f?'ODS 4 · Educación de calidad':''}" ${f?'':'placeholder="Tesia los sugiere"'}></div>
+    <div class="fg"><label>Objetivo general ${f?'<span class="ex">del documento</span>':''}</label>
+      <textarea class="${f?'filled':''}" ${f?'':'readonly placeholder="Tesia lo toma de tu documento, no lo escribes de cero"'}>${f?'Determinar el efecto de las estrategias digitales en el aprendizaje de estudiantes universitarios de últimos ciclos.':''}</textarea></div>
+    <div class="fg"><label>Objetivos específicos ${f?'<span class="ex">del documento</span>':''}</label>
+      <textarea class="${f?'filled':''}" ${f?'':'readonly placeholder="Se toman de tu documento"'}>${f?'1. Identificar las estrategias digitales más usadas.\n2. Medir su relación con el rendimiento académico.\n3. Proponer recomendaciones de mejora.':''}</textarea></div>
+    ${f?`<div class="note ok">${I.check}<span>Estos campos los <b>tomé de tu documento</b>, no los escribiste. Revísalos y ajusta lo que quieras.</span></div>`:''}</div>`;
+}
+function projTab2(){
+  const jsel=S.journalIdx!=null;
+  const docs=[
+    ["Carátula","ok","Autocompletada",null],
+    ["Documento del proyecto",S.proj?"ok":"warn",S.proj?"Listo":"Falta subir",null],
+    ["Reporte de similitud","ok","Listo",null],
+    ["Declaración de autenticidad","ok","Autocompletada",null],
+    ["Selección de revista",jsel?"ok":"warn",jsel?"Revista elegida":"Falta elegir",null],
+    ["Declaración del asesor",S.advisor?"info":"bad",S.advisor?"Recordatorio enviado":"Falta firma","req"]
+  ];
+  const rows=docs.map(d=>`<tr><td><span class="dn">${I.file}${d[0]}${d[3]==='req'?'<span class="req">requerido</span>':''}</span></td><td style="text-align:right"><span class="pill p-${d[1]}">${d[2]}</span></td></tr>`).join('');
+  const jcards=S.journalSuggested?JOURNALS.map((j,i)=>`
+    <div class="jcard ${S.journalIdx===i?'sel':''}">
+      <div><div class="jn">${j.name}</div><div class="jm"><span class="scbadge">Scopus</span><span class="qbadge">${j.q}</span>${j.area} · ${j.fit}</div></div>
+      ${S.journalIdx===i?`<span class="pill p-ok">Elegida</span>`:`<button class="btn sm" onclick="pickJournal(${i})">Seleccionar</button>`}
+    </div>`).join(''):'';
+  return `<div class="card"><h2>${I.file}Documentación y firmas</h2>
+    <div class="sub">Tesia revisa que cada archivo sea el correcto y esté firmado. Te avisa si algo falta.</div>
+    <table><thead><tr><th>Documento</th><th style="text-align:right">Estado</th></tr></thead><tbody>${rows}</tbody></table>
+    ${!S.advisor?`<div class="note bad">${I.warn}<span>El trámite está detenido por la <b>firma del asesor</b>. Abre a Tesia y pídele que le recuerde.</span></div>`:`<div class="note ok">${I.bell}<span>Le avisé a tu asesor. Te notifico apenas firme.</span></div>`}</div>
+  <div class="card"><h2>${I.book}Selección de revista para publicación</h2>
+    <div class="sub">Tesia analiza tu tema y te sugiere revistas indexadas en Scopus donde tu artículo encaja, con su cuartil. Elige una y se registra.</div>
+    ${S.journalSuggested?jcards:`<button class="btn" onclick="suggestJournals()">${I.book}Sugerir revistas Scopus con Tesia</button>`}
+    ${jsel?`<div class="note ok" style="margin-top:6px">${I.check}<span>Registré <b>${JOURNALS[S.journalIdx].name}</b> (Scopus · ${JOURNALS[S.journalIdx].q}) como tu revista objetivo.</span></div>`:''}</div>`;
+}
+function projTab3(){
+  const decided=!!S.type, exo=decided&&TYPES[S.type].route==='exo';
+  return `<div class="card"><h2>${I.route}Clasificación ética</h2>
+    <div class="sub">No tienes que leer e interpretar la lista de tipos de estudio. Responde una pregunta a Tesia y ella marca la exoneración y el tipo de estudio según la norma.</div>
+    <div class="grid2">
+      <div class="fg"><label><span class="auto">auto</span> ¿Exoneración de revisión por el Comité?</label>
+        <input type="text" readonly class="${decided?'filled':''}" value="${decided?(exo?'Sí, se exonera':'No, requiere revisión'):''}" placeholder="Lo define Tesia"></div>
+      <div class="fg"><label>Tipo de estudio (lista oficial) ${exo?'<span class="ex">detectado</span>':''}</label>
+        <input type="text" readonly class="${exo?'filled':''}" value="${exo&&S.studyType!=null?STUDY_TYPES[S.studyType]:''}" placeholder="${decided&&!exo?'No aplica · va a revisión':'Lo detecta Tesia'}"></div>
+    </div>
+    ${decided?`<div class="note ${exo?'ok':'warn'}">${exo?I.check:I.info}<span>Tu investigación <b>${TYPES[S.type].label.toLowerCase()}</b> ${exo?'califica para exoneración. Tesia marcó el tipo de estudio por ti.':'necesita revisión del Comité. Tus requisitos están en la pestaña 4.'}</span></div>`:`<div class="note info">${I.info}<span>Abre a Tesia (botón abajo a la derecha) y responde: ¿con qué trabaja tu investigación?</span></div>`}
+    <button class="btn" style="margin-top:14px" onclick="toggleAssistant(true)">${I.route}${S.type?'Cambiar clasificación con Tesia':'Clasificar con Tesia'}</button>
+    <button class="btn soft sm" style="margin-top:14px;margin-left:8px" onclick="toggleOld()">${S.ethicsOld?'Ocultar':'Ver'} cómo era antes (proceso manual)</button>
+    ${S.ethicsOld?`<div class="oldbox"><div class="ol">Así era antes · el alumno lo hacía solo</div>
+      <p>Puede solicitar la "Exoneración de revisión por el CIEIC" si su proyecto se enmarca dentro de alguno de los siguientes tipos de estudio: análisis de bases de datos secundarias de acceso abierto y/o público; estudios bibliométricos; evaluación química de los alimentos; investigación in vitro con microorganismos en plantas, así como estudios con bacterias, virus, protozoarios o partes de estos; revisiones sistemáticas, con o sin metaanálisis, y estudios de síntesis de evidencia (revisiones literarias, revisiones de alcance o scoping reviews, umbrella reviews); estudios que no involucren personas, animales o muestras de material biológico de origen humano. Esta exoneración aplica exclusivamente a investigaciones que no representen riesgos bioéticos directos.</p>
+      <div style="border:1px solid #E0CFA8;border-radius:7px;background:#fff;overflow:hidden">
+        <div style="padding:8px 11px;font-size:11.5px;color:#9b8551;background:#FBF6EA;border-bottom:1px solid #EFE3C8">Tipo de estudio · el alumno tenía que leer y elegir de aquí:</div>
+        ${STUDY_TYPES.map((t,i)=>`<div style="padding:9px 11px;font-size:12px;color:#6b5a37;${i<STUDY_TYPES.length-1?'border-bottom:1px solid #F2E8CF':''}">${i+1}. ${t}</div>`).join('')}
+      </div>
+      <div class="cap">El estudiante tenía que leer todo el texto legal, interpretarlo y elegir solo del menú. Tesia hace eso por él con una sola pregunta.</div></div>`:''}</div>`;
+}
+function projTab4(){
+  if(!S.type||TYPES[S.type].route!=='cieic')
+    return `<div class="card"><h2>${I.file}Requisitos del Comité de Ética</h2><div class="sub">Esta etapa se activa solo si tu proyecto necesita revisión.</div>
+      <div class="note info">${I.info}<span>${S.type?'Tu proyecto fue a <b>exoneración</b>, así que no requiere estos documentos.':'Primero responde la clasificación ética con Tesia (pestaña 3).'}</span></div></div>`;
+  const names={proyecto:"Proyecto (sin datos personales)",protocolo:"Solicitud de revisión de protocolo",consent:"Consentimiento informado",asent:"Asentimiento informado",bienestar:"Protocolo de bienestar animal"};
+  const rows=Object.keys(S.cieic).map(id=>{const st=S.cieic[id],lbl={ok:"Listo",info:"Generado · revisa",warn:"Falta subir"}[st];const act=st==='warn'?`<button class="btn sm" onclick="uploadCieic('${id}')">Subir</button> `:'';return `<tr><td><span class="dn">${I.file}${names[id]}</span></td><td style="text-align:right">${act}<span class="pill p-${st}">${lbl}</span></td></tr>`;}).join('');
+  return `<div class="card"><h2>${I.file}Requisitos del Comité de Ética</h2><div class="sub">Tesia armó esta lista según tu tipo de investigación. Solo ves lo que te aplica.</div>
+    <table><thead><tr><th>Documento</th><th style="text-align:right">Estado</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function projTab5(){
+  const pend=pendingProyecto(), ready=pend===0;
+  return `<div class="card"><h2>${I.check}Validación y envío</h2>
+    <div class="sub">Tesia revisa todo de forma cruzada. Solo habilita el envío cuando no falta nada.</div>
+    <div class="stats">
+      <div class="stat"><div class="n" style="color:${S.type?'var(--ok)':'var(--faint)'}">${S.type?'✓':'—'}</div><div class="l">ruta de ética</div></div>
+      <div class="stat"><div class="n" style="color:${pend?'var(--warn)':'var(--ok)'}">${pend}</div><div class="l">pendientes</div></div>
+      <div class="stat"><div class="n" style="color:${S.fields?'var(--ok)':'var(--faint)'}">${S.fields?'✓':'—'}</div><div class="l">datos del documento</div></div>
+    </div>
+    ${S.sent?`<div class="note ok">${I.check}<span>Enviado. Tu expediente entró <b>completo</b> a revisión. Tesia te avisará en cada cambio de estado.</span></div>`
+      :ready?`<button class="btn" onclick="S.sent=true;render()">Enviar proyecto a revisión</button>`
+      :`<div class="note warn">${I.warn}<span>Aún no puedes enviar. ${!S.proj?'Falta el documento. ':''}${!S.advisor?'Falta la firma del asesor. ':''}${S.journalIdx==null?'Falta elegir revista. ':''}${!S.type?'Falta la clasificación ética. ':''}${Object.values(S.cieic).some(v=>v==='warn')?'Faltan documentos del Comité.':''}</span></div>`}</div>`;
+}
+
+/* ---------- INFORME ---------- */
+function informeView(){
+  const inf=S.informe, allfix=inf.refs&&inf.tables;
+  return `<div class="card"><h2>${I.file}Revisión de formato y estilo</h2>
+    <div class="sub">El rebote más común es por sangrías, orden de referencias y paginado. Sube tu borrador final y Tesia hace una pre-revisión estructural antes de entregar.</div>
+    <div class="drop ${inf.scanned?'ok':''}" style="${inf.scanned?'':'border-color:#D8C18A'}" onclick="${inf.scanned?'':'scanInforme()'}">${I.up}
+      <div class="dt" style="${inf.scanned?'':'color:var(--warn)'}">${inf.scanned?'Informe_final.pdf · analizado':'Haz clic para analizar tu informe final (.pdf)'}</div>
+      <div class="dd">${inf.scanned?'Revisión estructural completada':'Tesia revisará estructura, referencias y formato'}</div></div></div>
+  ${inf.scanned?`<div class="card"><h2>Hallazgos de la revisión</h2>
+    <table>
+      <tr><td><span class="dn">${I.file}Estructura del resumen / abstract</span></td><td style="text-align:right"><span class="pill p-ok">Correcto</span></td></tr>
+      <tr><td><span class="dn">${I.file}Citas y referencias</span></td><td style="text-align:right">${inf.refs?'<span class="pill p-ok">Corregido</span>':'<button class="btn sm warn" onclick="fixInforme(&quot;refs&quot;)">Corregir</button> <span class="pill p-bad">4 citas sin listar</span>'}</td></tr>
+      <tr><td><span class="dn">${I.file}Numeración de tablas y figuras</span></td><td style="text-align:right">${inf.tables?'<span class="pill p-ok">Corregido</span>':'<button class="btn sm warn" onclick="fixInforme(&quot;tables&quot;)">Corregir</button> <span class="pill p-warn">Inconsistente</span>'}</td></tr>
+      <tr><td><span class="dn">${I.file}Márgenes y paginado</span></td><td style="text-align:right"><span class="pill p-ok">Cumple</span></td></tr>
+    </table>
+    ${allfix?`<div class="note ok" style="margin-top:14px">${I.check}<span>Todo corregido. Tu informe quedó <b>listo para entregar</b> según la directiva de formato.</span></div>`:`<div class="note info" style="margin-top:14px">${I.info}<span>Corrige los hallazgos con Tesia, uno por uno. Te quedan ${ (inf.refs?0:1)+(inf.tables?0:1) }.</span></div>`}</div>`:''}`;
+}
+
+/* ---------- SUSTENTACION ---------- */
+function sustentacionView(){
+  const total=QUESTIONS.length, done=S.practiced.length, pct=Math.round(done/total*100);
+  const qs=S.questionsShown?QUESTIONS.map((q,i)=>{
+    const pr=S.practiced.includes(i);
+    return `<div class="qitem"><div class="qh"><div class="qq">${i+1}. ${q.q}</div>${pr?'<span class="pill p-ok">Practicada</span>':`<button class="btn sm info" onclick="practiceQ(${i})">Practicar</button>`}</div>
+      ${pr?`<div class="tips"><div class="th">Cómo responderla · guía de Tesia</div><ul>${q.tips.map(t=>`<li>${t}</li>`).join('')}</ul></div>`:''}</div>`;
+  }).join(''):'';
+  return `<div class="card"><h2>${I.mic}Jurado y fecha</h2>
+    <div class="sub">Tu expediente fue aprobado. Aquí ves el estado del jurado y la fecha de sustentación.</div>
+    <table><thead><tr><th>Miembro del jurado</th><th>Rol</th><th style="text-align:right">Dictamen</th></tr></thead><tbody>
+      <tr><td>Evaluador A</td><td>Presidente</td><td style="text-align:right"><span class="pill p-ok">Aprobado</span></td></tr>
+      <tr><td>Evaluador B</td><td>Secretario</td><td style="text-align:right"><span class="pill p-ok">Aprobado</span></td></tr>
+      <tr><td>Evaluador C</td><td>Vocal</td><td style="text-align:right"><span class="pill p-ok">Aprobado</span></td></tr>
+    </tbody></table>
+    <div class="note info" style="margin-top:12px">${I.info}<span><b>Fecha asignada:</b> próximo viernes, 10:00 a. m.</span></div></div>
+  <div class="card"><h2>${I.mic}Simulador de preguntas del jurado</h2>
+    <div class="sub">A partir de tu marco metodológico, Tesia anticipa las preguntas más probables y te entrena a responderlas.</div>
+    ${S.questionsShown?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px">Preparación · ${done} de ${total} practicadas</div>
+      <div class="meter"><span style="width:${pct}%"></span></div>
+      <div style="margin-top:14px">${qs}</div>
+      ${done===total?`<div class="note ok">${I.check}<span>Practicaste todas. Tesia te ve <b>listo para tu defensa</b>.</span></div>`:''}`
+      :`<button class="btn info" onclick="showQuestions()">${I.mic}Generar preguntas probables</button>`}</div>`;
+}
+
+/* ---------- ASSISTANT ---------- */
+function renderAssistant(){
+  if(!S.aopen)return;
+  let h='';
+  if(S.flow==='informe'){
+    const inf=S.informe;
+    h = !inf.scanned?`<div class="msg"><b>Revisión de formato.</b> Sube tu informe final y reviso estructura, referencias y paginado antes de que lo entregues.</div>`
+      :(inf.refs&&inf.tables)?`<div class="msg" style="border-left-color:var(--ok)"><b>Listo para entregar.</b> Corregí las referencias y la numeración de tablas en el formato oficial.</div>`
+      :`<div class="msg" style="border-left-color:var(--bad)"><b>Encontré ${ (inf.refs?0:1)+(inf.tables?0:1) } cosas por corregir.</b> Te las marqué en el reporte; puedo arreglarlas con un clic.</div>
+        <div class="acard"><div class="ah">Pendientes del informe</div><ul style="font-size:12.5px;color:var(--muted);padding-left:17px;line-height:1.7">${!inf.refs?'<li>4 citas no están en la bibliografía</li>':''}${!inf.tables?'<li>Numeración de tablas inconsistente</li>':''}</ul></div>`;
+  } else if(S.flow==='sustentacion'){
+    const done=S.practiced.length,total=QUESTIONS.length;
+    h = !S.questionsShown?`<div class="msg"><b>Preparación de defensa.</b> Tu expediente fue aprobado. Genera las preguntas probables del jurado y las practicamos juntas.</div>`
+      : done<total?`<div class="msg"><b>Modo práctica.</b> Generé ${total} preguntas probables. Ve a cada una y toca "Practicar": te doy los puntos clave para responder. Llevas ${done} de ${total}.</div>`
+      :`<div class="msg" style="border-left-color:var(--ok)"><b>Practicaste todas.</b> Repasaste las ${total} preguntas más probables; llegas preparado a tu defensa.</div>`;
+  } else {
+    if(S.tab===1){
+      h = !S.proj?`<div class="msg"><b>Estás en Información del proyecto.</b> No escribas los objetivos a mano: sube tu documento y los extraigo, junto con el título, la línea, las palabras clave y los ODS.</div>`
+        : !S.fields?`<div class="msg">Leí tu documento. Detecté esto y puedo cargarlo al formulario:</div>
+          <div class="acard"><div class="ah">Encontrado en tu documento</div><ul style="font-size:12.5px;color:var(--muted);padding-left:17px;line-height:1.7;margin-bottom:11px"><li>Título y línea de investigación</li><li>Objetivo general y 3 específicos</li><li>Palabras clave y ODS sugeridos</li></ul>
+          <button class="btn sm" style="width:100%;justify-content:center" onclick="applyExtract()">Cargar al formulario</button></div>`
+        : `<div class="msg" style="border-left-color:var(--ok)"><b>Listo.</b> Llené tus campos desde tu documento. Revísalos y ajusta lo que quieras.</div>
+          <div class="acard"><div class="ah">Línea de investigación sugerida · elige</div>${LINES.map((l,i)=>`<button class="opt ${S.lineIdx===i?'sel':''}" onclick="setLine(${i})"><div class="ot" style="justify-content:space-between"><span>${l.linea}</span><span style="font-size:11px;color:var(--teal);font-weight:600">${l.fit}</span></div><div class="od" style="padding-left:0">${l.sub}</div></button>`).join('')}</div>
+          <div class="acard"><div class="ah">Palabras clave · toca para usar o quitar</div><div class="chips">${KW.map(k=>`<span class="chip ${S.kw.includes(k)?'on':''}" onclick="toggleKw('${k}')">${k}</span>`).join('')}</div></div>
+          <div class="msg">Cuando termines, pasa a <b>Documentación</b>.</div>`;
+    } else if(S.tab===2){
+      h = `<div class="msg"><b>Documentación.</b> Reviso cada archivo y te ayudo a elegir revista.</div>`;
+      if(!S.advisor) h+=`<div class="acard"><div class="ah" style="color:var(--bad)">Alerta de firma</div><div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Tu asesor aún no firma su declaración. Sin eso, el trámite no avanza.</div><button class="btn sm" style="width:100%;justify-content:center;background:var(--bad);border-color:var(--bad)" onclick="remindAdvisor()">Recordar al asesor</button></div>`;
+      else h+=`<div class="msg" style="border-left-color:var(--ok)"><b>Aviso enviado.</b> Le recordé a tu asesor que firme.</div>`;
+      if(S.journalIdx==null) h+=`<div class="acard"><div class="ah">Revistas Scopus para tu tema</div><div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Analicé tu título y línea. Puedo sugerirte revistas indexadas en Scopus donde encaja tu artículo.</div><button class="btn sm" style="width:100%;justify-content:center" onclick="suggestJournals()">Sugerir revistas</button></div>`;
+      else h+=`<div class="msg" style="border-left-color:var(--ok)"><b>Revista registrada:</b> ${JOURNALS[S.journalIdx].name} (Scopus · ${JOURNALS[S.journalIdx].q}).</div>`;
+    } else if(S.tab===3 || (S.tab===4 && !S.type)){
+      h = `<div class="msg"><b>Clasificación ética.</b> Antes elegías de una lista larga y adivinabas si te exoneraban. Solo dime con qué trabaja tu investigación:</div>
+        <div class="acard"><div class="ah">¿Con qué trabaja tu investigación?</div>${Object.entries(TYPES).map(([k,v])=>`<button class="opt ${S.type===k?'sel':''}" onclick="setType('${k}')"><div class="ot">${v.icon}${v.label}</div><div class="od">${v.desc}</div></button>`).join('')}</div>
+        ${S.type&&TYPES[S.type].route==='exo'?`<div class="msg" style="border-left-color:var(--ok)"><b>Califica para exoneración.</b> Detecté el tipo de estudio en la lista oficial por ti:</div>
+          <div class="acard"><div class="ah">Tipo de estudio · lista oficial</div>${STUDY_TYPES.map((t,i)=>`<button class="opt ${S.studyType===i?'sel':''}" onclick="setStudy(${i})"><div class="ot" style="font-size:12.5px;font-weight:500;line-height:1.4">${t}</div></button>`).join('')}<div style="font-size:11.5px;color:var(--muted);margin-top:8px">Marqué la que detecté en tu documento; descarté las que no aplican. Cámbiala si hace falta.</div></div>`
+          :S.type?`<div class="msg" style="border-left-color:var(--warn)"><b>Necesita revisión del Comité.</b> No corresponde a ningún tipo exonerable; armé tus requisitos en la pestaña 4.</div>`:''}`;
+    } else if(S.tab===4){
+      const pend=Object.values(S.cieic).filter(v=>v==='warn').length;
+      h = `<div class="msg">Armé tu expediente para una investigación <b>${TYPES[S.type].label.toLowerCase()}</b>.</div>`+(pend?`<div class="acard"><div class="ah">Te faltan ${pend} ${pend===1?'documento':'documentos'}</div><div style="font-size:12.5px;color:var(--muted)">Súbelos desde la tabla y los marco al instante.</div></div>`:`<div class="msg" style="border-left-color:var(--ok)"><b>Expediente completo.</b></div>`);
+    } else {
+      const pend=pendingProyecto();
+      h = S.sent?`<div class="msg" style="border-left-color:var(--ok)"><b>Enviado.</b> Tu expediente entró completo. Te aviso en cada cambio.</div>`
+        :pend===0?`<div class="msg" style="border-left-color:var(--ok)"><b>Todo validado.</b> Puedes enviar desde el botón de la pantalla.</div>`
+        :`<div class="msg"><b>Antes de enviar</b>, te muestro lo que falta:</div><div class="acard"><div class="ah" style="color:var(--warn)">Pendientes (${pend})</div><ul style="font-size:12.5px;color:var(--muted);padding-left:17px;line-height:1.7">${!S.proj?'<li>Cargar el documento</li>':''}${!S.advisor?'<li>Firma del asesor</li>':''}${S.journalIdx==null?'<li>Elegir revista</li>':''}${!S.type?'<li>Clasificación ética</li>':''}${Object.values(S.cieic).some(v=>v==='warn')?'<li>Documentos del Comité</li>':''}</ul></div>`;
+    }
+  }
+  document.getElementById('abody').innerHTML=h;
+}
+
+/* ---------- MODAL ---------- */
+function modalHTML(){
+  const STEPS15=[
+    ["Información del proyecto: datos, línea, ODS, título","autocompleta"],
+    ["Descripción: objetivos general y específicos","del documento"],
+    ["Registro de integrantes del proyecto","precarga"],
+    ["Cierre del registro del proyecto","guía"],
+    ["Documentación: carátula, similitud, autenticidad, revista","valida y sugiere"],
+    ["Firma de la declaración del asesor","avisa y recuerda"],
+    ["Exoneración o revisión del Comité de Ética","decide la ruta"],
+    ["Documentos del Comité: consentimiento, protocolo","arma el expediente"],
+    ["Validación y envío del proyecto","checklist único"],
+    ["Aprobación del Comité de Ética","seguimiento en vivo"],
+    ["Registro del informe final y su aprobación","revisa formato"],
+    ["Asignación de asesor de tesis","seguimiento"],
+    ["Carga de datos y registro de la tesis","guía"],
+    ["Designación de jurados y revisión","seguimiento"],
+    ["Acta de sustentación, repositorio y descarga","guía y prepara"]
+  ];
+  const steps = STEPS15.map((s,i)=>`
+    <div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)">
+      <span style="width:22px;height:22px;border-radius:6px;background:#EEF2F5;color:var(--muted);font-size:11px;font-weight:600;font-family:'Sora';display:flex;align-items:center;justify-content:center;flex:none">${i+1}</span>
+      <span style="flex:1;font-size:12.5px;color:var(--ink)">${s[0]}</span>
+      <span style="font-size:10px;font-weight:600;color:var(--teal-h);background:var(--teal-soft);padding:2px 9px;border-radius:99px;white-space:nowrap">Tesia ${s[1]}</span>
+    </div>`).join('');
+  return `<h2>Matriz de innovación · Design Thinking</h2>
+  <p class="ms">No es un rediseño de la plataforma. Es una capa de IA que guía cada paso del proceso oficial.</p>
+  <div style="background:var(--gold-bg);border:1px solid #E8D6A8;border-radius:var(--r);padding:14px 16px;margin-bottom:18px;font-size:13px;color:#6b5a2f;line-height:1.5">
+    <b>La propuesta no quita pasos.</b> Los 15 pasos oficiales siguen ahí porque son obligatorios. Lo que cambia es que el alumno deja de hacerlos solo: Tesia los autocompleta, los agrupa y lo guía, así que <b>se viven como pocos pasos</b> aunque por detrás sean los mismos.
+  </div>
+  <div class="hero">
+    <div class="bn"><div class="v" style="color:var(--bad)">15</div><div class="c">pasos del proceso actual, hechos en soledad</div></div>
+    <div class="arr">${I.route}</div>
+    <div class="bn"><div class="v" style="color:var(--ok)">5</div><div class="c">momentos guiados, así se siente con Tesia</div></div>
+  </div>
+  <div class="impgrp"><div class="gt">Los 15 pasos del proceso actual · y qué hace Tesia en cada uno</div>
+    ${steps}</div>
+  <div class="impgrp" style="margin-top:18px"><div class="gt">Por qué se sienten como pocos</div>
+    ${imp('Registro: datos, objetivos, línea, ODS y palabras clave salen del documento')}${imp('Ética: una sola pregunta reemplaza el dropdown legal de tipos de estudio')}${imp('Documentación: revistas Scopus sugeridas y firma del asesor con recordatorio')}${imp('Informe: revisión y corrección de referencias y formato asistidas')}${imp('Sustentación: práctica de preguntas probables del jurado')}${imp('Siempre: estado del trámite en vivo y un solo envío validado')}</div>
+  <button class="btn" style="margin-top:8px;width:100%;justify-content:center" onclick="closeModal()">Entendido</button>`;
+}
+function imp(t){return `<div class="imp">${I.check}<span>${t}</span></div>`;}
+
+render();
+</script>
+</body>
+</html>
